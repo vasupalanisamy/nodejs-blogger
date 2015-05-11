@@ -3,7 +3,7 @@ let then = require('express-then')
 let multiparty = require('multiparty')
 let Post = require('./models/post')
 let User = require('./models/user')
-let DataUri = require('datauri')
+let Comment = require('./models/comment')
 let fs = require('fs')
 module.exports = (app) => {
 let passport = app.passport
@@ -47,20 +47,12 @@ app.get('/post/:postid?', isLoggedIn, then(async(req, res) => {
 	let postid = req.params.postid
 	let post
 	let verb
-	let image
 	if(!postid){
-		console.log('i m in create', postid)
 		verb = 'Create'
 		post = {}
 	} else {
-		console.log('i m in update', postid)
 		verb = 'Update'
 		post = await Post.promise.findById(postid)
-		let datauri = new DataUri()
-		let imageDataUri = datauri.format('.' + post.image.contentType.split('/').pop(), post.image.data)
-		console.log(imageDataUri)
-		image = `data:${post.image.contentType};base64,${imageDataUri.base64}`
-		console.log(post)
 		if(!post) {
 			res.send('404', 'Not Found')
 			return
@@ -68,8 +60,7 @@ app.get('/post/:postid?', isLoggedIn, then(async(req, res) => {
 	}
 	res.render('post.ejs', {
 		post: post,
-		verb: verb,
-		image: image
+		verb: verb
 	})
 }))
 
@@ -78,26 +69,21 @@ app.post('/post/:postid?', isLoggedIn, then(async(req, res) => {
 	let[{title: [title], content: [content]}, {image: [file]}] = await new multiparty.Form().promise.parse(req)
 	let post
 	if(!postid){
-		console.log('creating.....', postid)
 		post = new Post()
 		post.userid = req.user.id
 		post.createdDate = new Date()
 		post.updatedDate = post.createdDate
 	} else {
-		console.log('updating.....', postid, file)
 		post = await Post.promise.findById(postid)
 		post.updatedDate = new Date()
-		console.log('updating.....', post)
 		if(!post) {
 			res.send('404', 'Not Found')
 			return
 		}
 	}
-	console.log(title, content, post)
 	post.title = title
 	post.content = content
 	if(file.originalFilename && file.originalFilename !== '') {
-		console.log('updating the file...', file, file.path)
 		post.image.data = await fs.promise.readFile(file.path)
 		post.image.contentType = file.headers['content-type']
 	}
@@ -118,13 +104,12 @@ app.get('/post/view/:postid', then(async(req, res) => {
 		res.send('404', 'Not Found')
 		return
 	}
-	let datauri = new DataUri()
-	let imageDataUri = datauri.format('.' + post.image.contentType.split('/').pop(), post.image.data)
-	console.log(imageDataUri)
-	let image = `data:${post.image.contentType};base64,${imageDataUri.base64}`
+	let comments = await Comment.promise.find({postId: postId})
+	let lastUpdated = post.updatedDate > post.createdDate ? post.updatedDate : post.createdDate
 	res.render('viewpost.ejs', {
 		post: post,
-		image: image
+		comments: comments,
+		isAuthenticated: req.isAuthenticated()
 	})
 }))
 
@@ -139,4 +124,14 @@ app.get('/blog/:blogTitle', then(async(req, res) => {
 	})
 }))
 
+app.post('/post/:postid/comment', isLoggedIn, then(async(req, res) => {
+	let postId = req.params.postid
+	let comment = new Comment()
+	comment.postId = postId
+	comment.comment = req.body.comment
+	comment.commentedUser = req.user.username
+	comment.date = new Date()
+	await comment.save()
+	res.redirect('/post/view/' + postId)
+}))
 }
