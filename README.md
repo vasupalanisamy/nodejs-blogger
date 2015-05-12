@@ -28,5 +28,5 @@ Time spent: 12 Hrs
 [Pending] Public user profiles show their information, posts and comments<BR/>
 
 **Walkthrough**<BR/>
-Please zoom in if image is not visible. Sorry for inconvenience. (Image Location - https://github.com/vasupalanisamy/dropbox-clone/blob/master/dropbox-clone.gif)
-![alt tag](https://github.com/vasupalanisamy/dropbox-clone/blob/master/dropbox-clone.gif)
+Please zoom in if image is not visible. Sorry for inconvenience. (Image Location - https://github.com/vasupalanisamy/nodejs-blogger/blob/master/blogger-demo.gif)
+![alt tag](https://github.com/vasupalanisamy/nodejs-blogger/blob/master/blogger-demo.gif)
