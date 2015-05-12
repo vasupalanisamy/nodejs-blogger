@@ -2,7 +2,7 @@
 
 This is a basic Blogger clone to create a blog with comments.
 
-Time spent: 12 Hrs
+Time spent: 16 Hrs
 
 **Features**<BR/>
 **Required**<BR/>
